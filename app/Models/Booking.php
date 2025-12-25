@@ -25,6 +25,7 @@ protected $fillable = [
     'end_date',
     'total_price',
     'status',
+    'payment_status',
 ];
 
 

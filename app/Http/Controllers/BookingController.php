@@ -6,6 +6,8 @@ use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class BookingController extends Controller
 {
@@ -46,7 +48,7 @@ public function confirm(Request $request, Car $car)
 }
 public function store(Request $request)
 {
-    Booking::create([
+    $booking = Booking::create([
         'user_id' => Auth::id(),
         'car_id' => $request->car_id,
         'start_date' => $request->start_date,
@@ -55,7 +57,7 @@ public function store(Request $request)
         'status' => 'pending',
     ]);
 
-    return redirect('/my-bookings');
+    return redirect("/payment/{$booking->id}");
 
 }
 
@@ -91,21 +93,18 @@ public function index()
     ));
 }
 public function approve(Booking $booking)
-{
-    // Approve selected booking
-    $booking->update(['status' => 'approved']);
+{{
+    // Safety check (optional but good)
+    if ($booking->payment_status !== 'pending_verification') {
+        return back()->with('error', 'Payment not verified yet.');
+    }
 
-    // Reject other overlapping bookings for the same car
-    Booking::where('car_id', $booking->car_id)
-        ->where('id', '!=', $booking->id)
-        ->where('status', 'pending')
-        ->where(function ($query) use ($booking) {
-            $query->where('start_date', '<=', $booking->end_date)
-                  ->where('end_date', '>=', $booking->start_date);
-        })
-        ->update(['status' => 'rejected']);
+    $booking->update([
+        'status' => 'approved',
+        'payment_status' => 'paid', // 🔥 THIS WAS MISSING
+    ]);
 
-    return back();
+    return back()->with('success', 'Booking approved and payment verified.');}
 }
 public function reject(Booking $booking)
 {
@@ -125,6 +124,25 @@ public function cancel(Booking $booking)
     $booking->update(['status' => 'cancelled']);
 
     return back();
+}
+public function receipt(Booking $booking)
+{
+    // Security: only owner or admin
+    if (
+        Auth::id() !== $booking->user_id &&
+        Auth::user()->role !== 'admin'
+    ) {
+        abort(403);
+    }
+
+    // Only allow receipt if paid & approved
+    if ($booking->payment_status !== 'paid' || $booking->status !== 'approved') {
+        abort(403);
+    }
+
+    $pdf = Pdf::loadView('receipts.booking', compact('booking'));
+
+    return $pdf->download('receipt-booking-'.$booking->id.'.pdf');
 }
 
 }

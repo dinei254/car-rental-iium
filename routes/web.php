@@ -4,6 +4,9 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CarController;
+use App\Http\Controllers\PaymentController;
+use App\Models\Booking;
+
 
 
 
@@ -44,6 +47,17 @@ Route::middleware(['auth'])->group(function () {
     // View own bookings
     Route::get('/my-bookings', [BookingController::class, 'myBookings']);
 });
+
+Route::get('/payment/{booking}', function (Booking $booking) {
+    return view('payment', compact('booking'));
+})->middleware('auth');
+
+Route::post('/payment/{booking}', [PaymentController::class, 'store'])
+    ->middleware('auth');
+
+
+Route::get('/booking/{booking}/receipt', [BookingController::class, 'receipt'])
+    ->middleware('auth');
 
 
 require __DIR__.'/auth.php';
