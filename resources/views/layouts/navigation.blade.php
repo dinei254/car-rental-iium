@@ -1,4 +1,7 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100 shadow-sm">
+<nav
+    x-data="{ open: false }"
+    class="bg-white border-b border-gray-100 shadow-sm relative z-50"
+>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
 
@@ -95,8 +98,7 @@
                         x-transition:leave="transition ease-in duration-150"
                         x-transition:leave-start="opacity-100 scale-100"
                         x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden"
-                        style="display: none;"
+                        class="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden z-50"
                     >
                         <div class="px-4 py-3 border-b border-gray-100">
                             <p class="text-sm font-medium text-gray-900">{{ Auth::user()->name }}</p>
